@@ -1,5 +1,63 @@
 -- [[ GEMINI HUB - CUSTOM VERSION FOR YOU ]] --
--- GitHub: https://github.com/ (manhdung)
+-- GitHub: https://github.com/ (manhdung)-- [[ GEMINI HUB - PHIÊN BẢN LOGO CHỮ D XANH NEON ]] --
+
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+-- [[ GIAO DIỆN CHÍNH ]] --
+local Window = Fluent:CreateWindow({
+    Title = "Gemini Hub | Manh Dung",
+    SubTitle = "Logo D Blue Edition",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+-- [[ HỆ THỐNG LOGO CHỮ D XANH MỚI ]] --
+local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+local Logo = Instance.new("ImageButton", ScreenGui)
+Logo.Size = UDim2.new(0, 60, 0, 60)
+Logo.Position = UDim2.new(0.05, 0, 0.2, 0)
+Logo.Image = "rbxassetid://14457319666" -- ID Chữ D Màu Xanh
+Logo.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Logo.BackgroundTransparency = 0.3
+Logo.Draggable = true
+Logo.Active = true
+
+-- Thêm Bo Góc & Viền Phát Sáng
+Instance.new("UICorner", Logo).CornerRadius = UDim.new(0, 15)
+local Stroke = Instance.new("UIStroke", Logo)
+Stroke.Color = Color3.fromRGB(0, 255, 255)
+Stroke.Thickness = 2
+
+Logo.MouseButton1Click:Connect(function()
+    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
+end)
+
+-- [[ PHẦN TÍNH NĂNG (GIỮ NGUYÊN NHƯ CŨ) ]] --
+_G.AutoFarm = false
+_G.AutoStats = false
+_G.AutoSea2 = false
+_G.SelectWeapon = "Melee"
+
+task.spawn(function()
+    while task.wait() do
+        pcall(function()
+            if _G.AutoFarm then
+                -- Logic Farm Level của bạn ở đây...
+            end
+        end)
+    end
+end)
+
+-- Tạo Tabs cho Menu
+local Tabs = { Main = Window:AddTab({ Title = "Tính Năng", Icon = "home" }) }
+Tabs.Main:AddToggle("Farm", {Title = "Auto Farm Level", Default = false }):OnChanged(function(v) _G.AutoFarm = v end)
+Tabs.Main:AddToggle("Sea2", {Title = "Auto Sang Sea 2", Default = false }):OnChanged(function(v) _G.AutoSea2 = v end)
+
+Window:SelectTab(1)
+Fluent:Notify({Title = "Manh Dung Hub", Content = "Đã cập nhật Logo chữ D Xanh!", Duration = 5})
 
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
