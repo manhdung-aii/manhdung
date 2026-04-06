@@ -4,7 +4,165 @@ local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
 -- [[ BIẾN CẤU HÌNH ]] --
-_G.AntiAdmin = true
+_G.AntiAdmin = true-- [[ NMD HUB - ULTIMATE EDITION ]] --
+-- Update: Dragon V3, Kitsune, Leviathan (Tiki Outpost), Anti-Ban Shield
+
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local Window = Fluent:CreateWindow({
+    Title = "NMD HUB | BLOX FRUITS",
+    SubTitle = "by Gemini AI - Anti-Ban Edition",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark"
+})
+
+-- [[ CẤU HÌNH HỆ THỐNG ]] --
+_G.AutoFarmLevel = false
+_G.AutoDragonV2 = false
+_G.AutoDragonV3 = false
+_G.AutoDragonHunter = false
+_G.AutoKitsuneIsland = false
+_G.AutoFindLeviathan = false
+_G.IsDraggingHeart = false
+_G.DangerLevelGoal = 6
+_G.SelectWeapon = "Melee"
+
+local TikiPort = Vector3.new(-15300, 20, 500)
+local SpyNPC = Vector3.new(-15400, 225, 440)
+
+-- [[ HÀNG RÀO ANTI-BAN & NGẮT VẬN TỐC ]] --
+local RunService = game:GetService("RunService")
+task.spawn(function()
+    RunService.Stepped:Connect(function()
+        pcall(function()
+            local Root = game.Players.LocalPlayer.Character.HumanoidRootPart
+            if _G.AutoFarmLevel or _G.AutoFindLeviathan or _G.AutoKitsuneIsland then
+                -- NGẮT VẬN TỐC VẬT LÝ (Tàng hình trước Radar Anticheat)
+                Root.Velocity = Vector3.new(0, 0, 0)
+                Root.RotVelocity = Vector3.new(0, 0, 0)
+            end
+        end)
+    end)
+end)
+
+-- Chống AFK
+for _, v in pairs(getconnections(game.Players.LocalPlayer.Idled)) do v:Disable() end
+
+-- [[ HÀM HỖ TRỢ (UTILITIES) ]] --
+local function SafeFastAttack()
+    local VIM = game:GetService("VirtualInputManager")
+    local Delay = math.random(12, 15) / 100 -- Random delay chống ban
+    VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+    task.wait(Delay)
+    VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+end
+
+local function EquipWeapon()
+    local p = game.Players.LocalPlayer
+    for _, v in pairs(p.Backpack:GetChildren()) do
+        if v:IsA("Tool") and (v.ToolTip == _G.SelectWeapon or v.Name:find(_G.SelectWeapon)) then
+            p.Character.Humanoid:EquipTool(v)
+        end
+    end
+end
+
+-- Logic Đánh M1 Thông Minh
+local function SmartM1(Target, Height)
+    if Target and Target:FindFirstChild("Humanoid") and Target.Humanoid.Health > 0 then
+        EquipWeapon()
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = Target.HumanoidRootPart.CFrame * CFrame.new(0, Height or 12, 0)
+        SafeFastAttack()
+    end
+end
+
+-- [[ GIAO DIỆN TABS ]] --
+local Tabs = {
+    Main = Window:AddTab({ Title = "Main Farm", Icon = "home" }),
+    Dojo = Window:AddTab({ Title = "Dragon Dojo", Icon = "flame" }),
+    Sea = Window:AddTab({ Title = "Sea Events", Icon = "waves" })
+}
+
+-- [TAB MAIN]
+Tabs.Main:AddDropdown("Wep", { Title = "Vũ khí", Values = {"Melee", "Sword", "Fruit"}, Default = "Melee", Callback = function(v) _G.SelectWeapon = v end })
+Tabs.Main:AddToggle("FarmLvl", { Title = "Auto Farm Level (M1 Only)", Default = false }):OnChanged(function(v) _G.AutoFarmLevel = v end)
+
+-- [TAB DOJO]
+Tabs.Dojo:AddToggle("TglHunter", { Title = "Auto Dragon Hunter (Hydra)", Default = false }):OnChanged(function(v) _G.AutoDragonHunter = v end)
+Tabs.Dojo:AddToggle("TglV2", { Title = "Auto Dragon V2 (Forest Pirate)", Default = false }):OnChanged(function(v) _G.AutoDragonV2 = v end)
+Tabs.Dojo:AddToggle("TglV3", { Title = "Auto Dragon V3 (Terror Shark)", Default = false }):OnChanged(function(v) _G.AutoDragonV3 = v end)
+
+-- [TAB SEA]
+Tabs.Sea:AddButton({
+    Title = "Hối Lộ Spy (Tốn 1,500 Fragment)",
+    Callback = function()
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(SpyNPC)
+        task.wait(0.5)
+        for i=1,3 do game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("LeviathanSpy", "Clues") task.wait(0.3) end
+        Fluent:Notify({Title = "NMD HUB", Content = "Đã hối lộ xong!", Duration = 5})
+    end
+})
+
+Tabs.Sea:AddSlider("Danger", { Title = "Vùng Biển Mục Tiêu", Min = 1, Max = 6, Default = 6, Callback = function(v) _G.DangerLevelGoal = v end })
+Tabs.Sea:AddToggle("TglKitsune", { Title = "Auto Tìm Đảo Cáo (Lái Thường)", Default = false }):OnChanged(function(v) _G.AutoKitsuneIsland = v end)
+Tabs.Sea:AddToggle("TglLevi", { Title = "Auto Tìm Leviathan (Bay Bảo Vệ)", Default = false }):OnChanged(function(v) _G.AutoFindLeviathan = v end)
+Tabs.Sea:AddToggle("TglDrag", { Title = "CHẾ ĐỘ KÉO TIM (Bám Biển Y=18)", Default = false }):OnChanged(function(v) _G.IsDraggingHeart = v end)
+
+-- [[ VÒNG LẶP CHÍNH (MAIN LOOP) ]] --
+task.spawn(function()
+    while task.wait(0.1) do
+        pcall(function()
+            local LP = game.Players.LocalPlayer
+            local Character = LP.Character
+            local Root = Character.HumanoidRootPart
+
+            -- 1. DRAGON HUNTER (Hydra Island)
+            if _G.AutoDragonHunter then
+                for _, v in pairs(workspace.Enemies:GetChildren()) do
+                    if v.Name:find("Dragon Crew") then SmartM1(v, 12) break end
+                end
+
+            -- 2. DRAGON V2 (Forest Pirate)
+            elseif _G.AutoDragonV2 then
+                local Flower = workspace:FindFirstChild("Fire Flower")
+                if Flower then Root.CFrame = Flower.CFrame else
+                    SmartM1(workspace.Enemies:FindFirstChild("Forest Pirate"), 10)
+                end
+
+            -- 3. DRAGON V3 (Terror Shark)
+            elseif _G.AutoDragonV3 then
+                local Boss = workspace.Enemies:FindFirstChild("Terror Shark")
+                if Boss then SmartM1(Boss, 20) else
+                    -- Tự ra biển tìm boss
+                    Root.CFrame = CFrame.new(Root.Position.X + 200, 100, Root.Position.Z + 200)
+                end
+
+            -- 4. SEA EVENTS (LEVI & KITSUNE)
+            elseif _G.AutoFindLeviathan or _G.AutoKitsuneIsland then
+                local Seat = Character.Humanoid.SeatPart
+                if Seat and Seat:IsA("VehicleSeat") then
+                    local Boat = Seat.Parent
+                    if _G.IsDraggingHeart then -- KÉO TIM (Bám biển về Tiki)
+                        Boat:SetPrimaryPartCFrame(CFrame.new(Boat.PrimaryPart.Position, TikiPort))
+                        Boat:SetPrimaryPartCFrame(CFrame.new(Boat.PrimaryPart.Position.X, 18, Boat.PrimaryPart.Position.Z) * CFrame.new(0,0,-50))
+                    else -- ĐANG TÌM (Bay cao né quái nếu là Levi)
+                        Boat:SetPrimaryPartCFrame(Boat.PrimaryPart.CFrame * CFrame.new(0,0,-70))
+                        if _G.AutoFindLeviathan then
+                            for _, v in pairs(workspace.Enemies:GetChildren()) do
+                                if v.Name:find("Sea Beast") or v.Name:find("Terror Shark") then
+                                    Boat:SetPrimaryPartCFrame(Boat.PrimaryPart.CFrame * CFrame.new(0,100,0))
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+Window:SelectTab(1)
+Fluent:Notify({ Title = "NMD HUB", Content = "Hệ thống đã sẵn sàng, thưa sếp!", Duration = 5 })
 _G.AutoLeave30Min = false -- Mặc định tắt theo ý bạn
 local StartTime = tick()
 
