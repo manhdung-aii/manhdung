@@ -1,6 +1,96 @@
 -- [[ NMD HUB - PHIÊN BẢN FULL TÍNH NĂNG ]] --
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+-- [[ NMD HUB - SMART TIMER UPDATE ]] --
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
+-- [[ BIẾN CẤU HÌNH ]] --
+_G.AntiAdmin = true
+_G.AutoLeave30Min = false -- Mặc định tắt theo ý bạn
+local StartTime = tick()
+
+-- [[ HỆ THỐNG TỰ THOÁT SAU 30 PHÚT ]] --
+task.spawn(function()
+    while task.wait(10) do -- Kiểm tra mỗi 10 giây để tiết kiệm tài nguyên
+        if _G.AutoLeave30Min then
+            local ElapsedTime = tick() - StartTime
+            local RemainingTime = 1800 - ElapsedTime -- 30 phút = 1800 giây
+            
+            -- Thông báo khi còn 1 phút (60 giây)
+            if RemainingTime <= 60 and RemainingTime > 50 then
+                Fluent:Notify({
+                    Title = "NMD HUB TIMER",
+                    Content = "Cảnh báo: Sẽ tự động thoát Server sau 60 giây nữa!",
+                    Duration = 10
+                })
+            end
+            
+            -- Thực hiện thoát khi đủ 30 phút
+            if ElapsedTime >= 1800 then
+                game.Players.LocalPlayer:Kick("\n[NMD HUB TIMER]\nĐã đủ 30 phút treo máy!\nScript tự động thoát theo cài đặt của bạn.")
+            end
+        else
+            -- Reset lại thời gian nếu người dùng tắt đi rồi bật lại
+            StartTime = tick()
+        end
+    end
+end)
+
+-- [[ GIAO DIỆN ]] --
+local Window = Fluent:CreateWindow({
+    Title = "NMD HUB",
+    SubTitle = "Smart Farming Edition",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = false,
+    Theme = "Dark"
+})
+
+local Tabs = {
+    Main = Window:AddTab({ Title = "Auto Farm", Icon = "home" }),
+    Settings = Window:AddTab({ Title = "Cài Đặt", Icon = "settings" })
+}
+
+-- [[ TAB SETTINGS: CẬP NHẬT TÍNH NĂNG MỚI ]] --
+Tabs.Settings:AddSection("Security & Timer")
+
+-- Nút tự thoát sau 30 phút
+Tabs.Settings:AddToggle("AutoLeaveToggle", {
+    Title = "Auto Leave (30 Minutes)", 
+    Description = "Tự động thoát game sau khi treo đủ 30 phút.",
+    Default = false 
+}):OnChanged(function(v) 
+    _G.AutoLeave30Min = v 
+    if v then
+        StartTime = tick() -- Reset mốc thời gian khi vừa bật nút
+        Fluent:Notify({
+            Title = "NMD HUB",
+            Content = "Đã bật đếm ngược 30 phút thoát Server!",
+            Duration = 5
+        })
+    end
+end)
+
+-- Nút Anti-Admin (Mặc định bật như bản trước)
+Tabs.Settings:AddToggle("AntiAdmin", {
+    Title = "Anti-Admin (Auto Kick)", 
+    Default = true 
+}):OnChanged(function(v) _G.AntiAdmin = v end)
+
+-- Ngôn ngữ
+Tabs.Settings:AddDropdown("Lang", {
+    Title = "Language",
+    Values = {"Tiếng Việt", "English"},
+    Default = "Tiếng Việt"
+})
+
+-- [ GIỮ NGUYÊN LOGIC FARM VÀ CHEST Ở ĐÂY ] --
+
+Window:SelectTab(1)
+Fluent:Notify({
+    Title = "NMD HUB",
+    Content = "Đã cập nhật tính năng Hẹn giờ 30 phút trong Cài Đặt!",
+    Duration = 5
+})
 local Window = Fluent:CreateWindow({
     Title = "NMD HUB",
     SubTitle = "Chơi game vui vẻ nha!",
