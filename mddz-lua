@@ -1,226 +1,92 @@
--- [[ GEMINI HUB - CUSTOM VERSION FOR YOU ]] --
--- GitHub: https://github.com/ (manhdung)-- [[ GEMINI HUB - PHIÊN BẢN LOGO CHỮ D XANH NEON ]] --
--- [[ GEMINI HUB - -- [[ NMD HUB - PHIÊN BẢN CHÍNH CHỦ ]] --
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+-- [[ NMD HUB - PHIÊN BẢN ĐẶC BIỆT CHO DELTA ]] --
+local success, Fluent = pcall(function()
+    return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+end)
 
--- [[ CẤU HÌNH HỆ THỐNG ]] --
-_G.AutoFarm = false
-_G.FastAttack = true
-_G.FarmDistance = 15 -- Mặc định đứng cao 15
-_G.SelectWeapon = "Melee"
+if not success then
+    warn("Lỗi load thư viện Fluent, đang thử link dự phòng...")
+    Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/main.lua"))()
+end
 
--- [[ GIAO DIỆN CHÍNH ]] --
 local Window = Fluent:CreateWindow({
-    Title = "NMD HUB", -- Đã đổi tên thành NMD
-    SubTitle = "Chơi game vui vẻ", -- Content của bạn đây
+    Title = "NMD HUB",
+    SubTitle = "Chơi game vui vẻ nha!",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
-    Acrylic = false, 
+    Acrylic = false,
     Theme = "Dark",
     MinimizeKey = Enum.KeyCode.LeftControl
 })
 
--- [[ HỆ THỐNG LOGO CHỮ D XANH NEON - FIX BẬT/TẮT ]] --
+-- [[ HỆ THỐNG LOGO CHỮ D CHO DELTA ]] --
 local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-ScreenGui.Name = "NMD_Gui"
-
 local Logo = Instance.new("ImageButton", ScreenGui)
-Logo.Size = UDim2.new(0, 60, 0, 60)
-Logo.Position = UDim2.new(0.05, 0, 0.15, 0)
-Logo.Image = "rbxassetid://14457319666" -- Logo chữ D xanh Neon
+Logo.Size = UDim2.new(0, 55, 0, 55)
+Logo.Position = UDim2.new(0.1, 0, 0.15, 0)
+Logo.Image = "rbxassetid://14457319666" -- ID chữ D xanh
 Logo.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-Logo.BackgroundTransparency = 0.3
+Logo.BackgroundTransparency = 0.4
 Logo.Draggable = true
 Logo.Active = true
-
--- Bo góc và Viền phát sáng cho Logo
-Instance.new("UICorner", Logo).CornerRadius = UDim.new(0, 15)
+Instance.new("UICorner", Logo).CornerRadius = UDim.new(0, 12)
 local Stroke = Instance.new("UIStroke", Logo)
 Stroke.Color = Color3.fromRGB(0, 255, 255)
 Stroke.Thickness = 2
 
--- Fix lỗi nhấn Logo để Ẩn/Hiện Menu
-local Toggled = true
+-- Fix bật/tắt cho Delta Mobile
 Logo.MouseButton1Click:Connect(function()
-    Toggled = not Toggled
     if Window.Root then
-        Window.Root.Visible = Toggled
+        Window.Root.Visible = not Window.Root.Visible
     end
 end)
 
--- [[ CÁC TAB CHỨC NĂNG ]] --
+-- [[ TAB CHỨC NĂNG ]] --
 local Tabs = {
     Main = Window:AddTab({ Title = "Auto Farm", Icon = "home" }),
     Settings = Window:AddTab({ Title = "Cài Đặt", Icon = "settings" })
 }
 
--- Tab Auto Farm
+-- Nội dung Tab Settings (NMD HUB)
+Tabs.Settings:AddSection("Thông Tin Tác Giả")
+Tabs.Settings:AddParagraph({
+    Title = "NMD HUB",
+    Content = "Nhà sản xuất: NMD\nChơi game vui vẻ nha!"
+})
+
+_G.AutoFarm = false
+_G.FarmDistance = 15
+
 Tabs.Main:AddToggle("Farm", {Title = "Auto Farm Level", Default = false }):OnChanged(function(v) 
     _G.AutoFarm = v 
 end)
 
--- Tab Cài Đặt (Nơi đổi tên nhà sản xuất)
-Tabs.Settings:AddSection("Thông Tin Tác Giả")
-Tabs.Settings:AddParagraph({
-    Title = "NMD HUB", 
-    Content = "Chơi game vui vẻ nha!"
-})
-
-Tabs.Settings:AddSection("Cấu Hình")
 Tabs.Settings:AddSlider("Distance", {
-    Title = "Khoảng cách đứng trên đầu quái",
-    Description = "Chỉnh từ 1-36 (Thấp thì đánh nhanh, Cao thì an toàn)",
+    Title = "Khoảng cách Farm",
     Default = 15,
     Min = 1,
     Max = 36,
     Rounding = 0,
-    Callback = function(Value)
-        _G.FarmDistance = Value
-    end
+    Callback = function(v) _G.FarmDistance = v end
 })
 
--- [[ VÒNG LẶP FAST ATTACK ]] --
-task.spawn(function()
-    while task.wait() do
-        if _G.AutoFarm and _G.FastAttack then
-            pcall(function()
-                local CombatFramework = require(game:GetService("Players").LocalPlayer.PlayerScripts:WaitForChild("CombatFramework"))
-                local CombatFrameworkLib = getupvalue(CombatFramework, 2)
-                if CombatFrameworkLib and CombatFrameworkLib.activeController then
-                    CombatFrameworkLib.activeController:attack()
-                end
-            end)
-        end
-    end
-end)
-
--- [[ VÒNG LẶP AUTO FARM (TWEEN) ]] --
-task.spawn(function()
-    while task.wait() do
-        if _G.AutoFarm then
-            pcall(function()
-                local LP = game.Players.LocalPlayer
-                local Enemy = nil
-                -- Tìm quái
-                for _, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
-                    if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-                        Enemy = v
-                        break
-                    end
-                end
-
-                if Enemy then
-                    -- Trang bị vũ khí
-                    local Tool = LP.Backpack:FindFirstChild(_G.SelectWeapon) or LP.Character:FindFirstChild(_G.SelectWeapon)
-                    if Tool then LP.Character.Humanoid:EquipTool(Tool) end
-                    
-                    -- Bay đến quái dựa trên khoảng cách thiết lập
-                    LP.Character.HumanoidRootPart.CFrame = Enemy.HumanoidRootPart.CFrame * CFrame.new(0, _G.FarmDistance, 0) * CFrame.Angles(math.rad(-90), 0, 0)
-                end
-            end)
-        end
-    end
-end)
-
--- Thông báo khi chạy script
-Window:SelectTab(1)
-Fluent:Notify({
-    Title = "NMD HUB",
-    Content = "Chào mừng bạn! Chơi game vui vẻ nha!",
-    Duration = 5
-})FIX TOGGLE & LOGO ]] --
-
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-
--- [[ CẤU HÌNH GIAO DIỆN ]] --
-local Window = Fluent:CreateWindow({
-    Title = "Manh Dung Hub",
-    SubTitle = "Fixed Toggle Version",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 460),
-    Acrylic = false, 
-    Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.LeftControl
-})
-
--- [[ HỆ THỐNG LOGO CHỮ D - FIX BẬT/TẮT ]] --
-local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-ScreenGui.Name = "ManhDungGui"
-
-local Logo = Instance.new("ImageButton", ScreenGui)
-Logo.Size = UDim2.new(0, 60, 0, 60)
-Logo.Position = UDim2.new(0.05, 0, 0.15, 0)
-Logo.Image = "rbxassetid://14457319666" -- ID chữ D màu xanh
-Logo.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-Logo.BackgroundTransparency = 0.3
-Logo.Draggable = true
-Logo.Active = true
-
--- Thêm Bo Góc & Viền
-Instance.new("UICorner", Logo).CornerRadius = UDim.new(0, 15)
-local Stroke = Instance.new("UIStroke", Logo)
-Stroke.Color = Color3.fromRGB(0, 255, 255)
-Stroke.Thickness = 2
-
--- [[ HÀM FIX LỖI BẬT/TẮT ]] --
-local Toggled = true
-Logo.MouseButton1Click:Connect(function()
-    Toggled = not Toggled
-    -- Cách này sẽ tác động thẳng vào khung hình của Menu
-    if Window.Root then
-        Window.Root.Visible = Toggled
-    end
-end)
-
--- [[ PHẦN TÍNH NĂNG FAST ATTACK & FARM ]] --
-_G.AutoFarm = false
-_G.FastAttack = true
-_G.FarmDistance = 15
-
--- Tab Main
-local Tabs = {
-    Main = Window:AddTab({ Title = "Auto Farm", Icon = "home" }),
-    Settings = Window:AddTab({ Title = "Cài Đặt", Icon = "settings" })
-}
-
-Tabs.Main:AddToggle("Farm", {Title = "Auto Farm Level", Default = false }):OnChanged(function(v) _G.AutoFarm = v end)
-
-Tabs.Settings:AddSlider("Distance", {
-    Title = "Khoảng cách đứng trên đầu quái",
-    Default = 15,
-    Min = 1,
-    Max = 36,
-    Rounding = 0,
-    Callback = function(Value) _G.FarmDistance = Value end
-})
-
--- Vòng lặp Fast Attack (Đã sửa để đánh mượt hơn)
-task.spawn(function()
-    while task.wait() do
-        if _G.AutoFarm and _G.FastAttack then
-            pcall(function()
-                local CombatFramework = require(game:GetService("Players").LocalPlayer.PlayerScripts:WaitForChild("CombatFramework"))
-                local CombatFrameworkLib = getupvalue(CombatFramework, 2)
-                if CombatFrameworkLib and CombatFrameworkLib.activeController then
-                    CombatFrameworkLib.activeController:attack()
-                end
-            end)
-        end
-    end
-end)
-
--- Vòng lặp Farm (Giữ nguyên logic bay)
+-- [[ VÒNG LẶP AUTO FARM ]] --
 task.spawn(function()
     while task.wait() do
         if _G.AutoFarm then
             pcall(function()
                 local Enemy = nil
-                for _, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                for _, v in pairs(workspace.Enemies:GetChildren()) do
                     if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
                         Enemy = v break
                     end
                 end
                 if Enemy then
+                    -- Tự cầm vũ khí (Melee)
+                    local Tool = game.Players.LocalPlayer.Backpack:FindFirstChild("Melee") or game.Players.LocalPlayer.Character:FindFirstChild("Melee")
+                    if Tool and not game.Players.LocalPlayer.Character:FindFirstChild(Tool.Name) then
+                        game.Players.LocalPlayer.Character.Humanoid:EquipTool(Tool)
+                    end
+                    -- Bay đến quái
                     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = Enemy.HumanoidRootPart.CFrame * CFrame.new(0, _G.FarmDistance, 0)
                 end
             end)
@@ -229,148 +95,4 @@ task.spawn(function()
 end)
 
 Window:SelectTab(1)
-Fluent:Notify({Title = "Manh Dung Hub", Content = "Đã sửa lỗi Bật/Tắt Menu!", Duration = 5})
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-
--- [[ GIAO DIỆN CHÍNH ]] --
-local Window = Fluent:CreateWindow({
-    Title = "Gemini Hub | Manh Dung",
-    SubTitle = "Logo D Blue Edition",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 460),
-    Acrylic = true,
-    Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.LeftControl
-})
-
--- [[ HỆ THỐNG LOGO CHỮ D XANH MỚI ]] --
-local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-local Logo = Instance.new("ImageButton", ScreenGui)
-Logo.Size = UDim2.new(0, 60, 0, 60)
-Logo.Position = UDim2.new(0.05, 0, 0.2, 0)
-Logo.Image = "rbxassetid://14457319666" -- ID Chữ D Màu Xanh
-Logo.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-Logo.BackgroundTransparency = 0.3
-Logo.Draggable = true
-Logo.Active = true
-
--- Thêm Bo Góc & Viền Phát Sáng
-Instance.new("UICorner", Logo).CornerRadius = UDim.new(0, 15)
-local Stroke = Instance.new("UIStroke", Logo)
-Stroke.Color = Color3.fromRGB(0, 255, 255)
-Stroke.Thickness = 2
-
-Logo.MouseButton1Click:Connect(function()
-    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
-end)
-
--- [[ PHẦN TÍNH NĂNG (GIỮ NGUYÊN NHƯ CŨ) ]] --
-_G.AutoFarm = false
-_G.AutoStats = false
-_G.AutoSea2 = false
-_G.SelectWeapon = "Melee"
-
-task.spawn(function()
-    while task.wait() do
-        pcall(function()
-            if _G.AutoFarm then
-                -- Logic Farm Level của bạn ở đây...
-            end
-        end)
-    end
-end)
-
--- Tạo Tabs cho Menu
-local Tabs = { Main = Window:AddTab({ Title = "Tính Năng", Icon = "home" }) }
-Tabs.Main:AddToggle("Farm", {Title = "Auto Farm Level", Default = false }):OnChanged(function(v) _G.AutoFarm = v end)
-Tabs.Main:AddToggle("Sea2", {Title = "Auto Sang Sea 2", Default = false }):OnChanged(function(v) _G.AutoSea2 = v end)
-
-Window:SelectTab(1)
-Fluent:Notify({Title = "Manh Dung Hub", Content = "Đã cập nhật Logo chữ D Xanh!", Duration = 5})
-
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-
--- [[ 1. HỆ THỐNG BẢO MẬT ]] --
-local mt = getrawmetatable(game)
-local old = mt.__namecall
-setreadonly(mt, false)
-mt.__namecall = newcclosure(function(self, ...)
-    local method = getnamecallmethod()
-    if method == "FireServer" and (self.Name == "Admin_Check" or self.Name == "CheatCheck") then return nil end
-    return old(self, ...)
-end)
-setreadonly(mt, true)
-
--- [[ 2. GIAO DIỆN ]] --
-local Window = Fluent:CreateWindow({
-    Title = "Gemini Hub Custom",
-    SubTitle = "By Your Name",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 460),
-    Acrylic = true,
-    Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.LeftControl
-})
-
--- [[ 3. LOGO TOGGLE ]] --
-local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-local Logo = Instance.new("ImageButton", ScreenGui)
-Logo.Size = UDim2.new(0, 50, 0, 50)
-Logo.Position = UDim2.new(0.05, 0, 0.2, 0)
-Logo.Image = "rbxassetid://6031280224"
-Logo.Draggable = true
-Logo.Active = true
-Instance.new("UICorner", Logo).CornerRadius = UDim.new(0, 10)
-Logo.MouseButton1Click:Connect(function()
-    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
-end)
-
--- [[ 4. BIẾN HỆ THỐNG ]] --
-_G.AutoFarm = false
-_G.AutoStats = false
-_G.AutoSea2 = false
-_G.SelectWeapon = "Melee"
-_G.StatPoint = "Melee"
-
--- [[ 5. LOGIC CHÍNH (FARM & STATS & SEA 2) ]] --
-task.spawn(function()
-    while task.wait() do
-        pcall(function()
-            if _G.AutoFarm then
-                local Enemy = nil
-                for _, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
-                    if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-                        Enemy = v break
-                    end
-                end
-                if Enemy then
-                    local Character = game.Players.LocalPlayer.Character
-                    local Tool = game.Players.LocalPlayer.Backpack:FindFirstChild(_G.SelectWeapon) or Character:FindFirstChild(_G.SelectWeapon)
-                    if Tool then Character.Humanoid:EquipTool(Tool) end
-                    Character.HumanoidRootPart.CFrame = Enemy.HumanoidRootPart.CFrame * CFrame.new(0, 7, 0)
-                    game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
-                end
-            end
-            
-            if _G.AutoStats then
-                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", _G.StatPoint, 1)
-            end
-            
-            if _G.AutoSea2 and game.Players.LocalPlayer.Data.Level.Value >= 700 then
-                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("ConfirmIceAbiral")
-                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1347.7, 37.3, -1325.6)
-                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelZou")
-            end
-        end)
-    end
-end)
-
--- [[ 6. CÁC TABS ]] --
-local Tabs = { Main = Window:AddTab({ Title = "Tính Năng", Icon = "home" }) }
-Tabs.Main:AddToggle("Farm", {Title = "Auto Farm Level", Default = false }):OnChanged(function(v) _G.AutoFarm = v end)
-Tabs.Main:AddToggle("Sea2", {Title = "Auto Sea 2 (Lvl 700)", Default = false }):OnChanged(function(v) _G.AutoSea2 = v end)
-Tabs.Main:AddToggle("Stats", {Title = "Auto Stats", Default = false }):OnChanged(function(v) _G.AutoStats = v end)
-Tabs.Main:AddDropdown("StatType", {Title = "Chọn Chỉ Số", Values = {"Melee", "Defense", "Sword"}, Default = "Melee", Callback = function(v) _G.StatPoint = v end})
-
-Window:SelectTab(1)
-Fluent:Notify({Title = "Gemini Hub", Content = "Script đã sẵn sàng!", Duration = 5})
+Fluent:Notify({Title = "NMD HUB", Content = "Đã tải xong! Chơi game vui vẻ!", Duration = 5})
