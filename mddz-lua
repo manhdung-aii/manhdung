@@ -1,6 +1,134 @@
 -- [[ GEMINI HUB - CUSTOM VERSION FOR YOU ]] --
 -- GitHub: https://github.com/ (manhdung)-- [[ GEMINI HUB - PHIÊN BẢN LOGO CHỮ D XANH NEON ]] --
--- [[ GEMINI HUB - FIX TOGGLE & LOGO ]] --
+-- [[ GEMINI HUB - -- [[ NMD HUB - PHIÊN BẢN CHÍNH CHỦ ]] --
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+-- [[ CẤU HÌNH HỆ THỐNG ]] --
+_G.AutoFarm = false
+_G.FastAttack = true
+_G.FarmDistance = 15 -- Mặc định đứng cao 15
+_G.SelectWeapon = "Melee"
+
+-- [[ GIAO DIỆN CHÍNH ]] --
+local Window = Fluent:CreateWindow({
+    Title = "NMD HUB", -- Đã đổi tên thành NMD
+    SubTitle = "Chơi game vui vẻ", -- Content của bạn đây
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = false, 
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+-- [[ HỆ THỐNG LOGO CHỮ D XANH NEON - FIX BẬT/TẮT ]] --
+local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+ScreenGui.Name = "NMD_Gui"
+
+local Logo = Instance.new("ImageButton", ScreenGui)
+Logo.Size = UDim2.new(0, 60, 0, 60)
+Logo.Position = UDim2.new(0.05, 0, 0.15, 0)
+Logo.Image = "rbxassetid://14457319666" -- Logo chữ D xanh Neon
+Logo.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Logo.BackgroundTransparency = 0.3
+Logo.Draggable = true
+Logo.Active = true
+
+-- Bo góc và Viền phát sáng cho Logo
+Instance.new("UICorner", Logo).CornerRadius = UDim.new(0, 15)
+local Stroke = Instance.new("UIStroke", Logo)
+Stroke.Color = Color3.fromRGB(0, 255, 255)
+Stroke.Thickness = 2
+
+-- Fix lỗi nhấn Logo để Ẩn/Hiện Menu
+local Toggled = true
+Logo.MouseButton1Click:Connect(function()
+    Toggled = not Toggled
+    if Window.Root then
+        Window.Root.Visible = Toggled
+    end
+end)
+
+-- [[ CÁC TAB CHỨC NĂNG ]] --
+local Tabs = {
+    Main = Window:AddTab({ Title = "Auto Farm", Icon = "home" }),
+    Settings = Window:AddTab({ Title = "Cài Đặt", Icon = "settings" })
+}
+
+-- Tab Auto Farm
+Tabs.Main:AddToggle("Farm", {Title = "Auto Farm Level", Default = false }):OnChanged(function(v) 
+    _G.AutoFarm = v 
+end)
+
+-- Tab Cài Đặt (Nơi đổi tên nhà sản xuất)
+Tabs.Settings:AddSection("Thông Tin Tác Giả")
+Tabs.Settings:AddParagraph({
+    Title = "NMD HUB", 
+    Content = "Chơi game vui vẻ nha!"
+})
+
+Tabs.Settings:AddSection("Cấu Hình")
+Tabs.Settings:AddSlider("Distance", {
+    Title = "Khoảng cách đứng trên đầu quái",
+    Description = "Chỉnh từ 1-36 (Thấp thì đánh nhanh, Cao thì an toàn)",
+    Default = 15,
+    Min = 1,
+    Max = 36,
+    Rounding = 0,
+    Callback = function(Value)
+        _G.FarmDistance = Value
+    end
+})
+
+-- [[ VÒNG LẶP FAST ATTACK ]] --
+task.spawn(function()
+    while task.wait() do
+        if _G.AutoFarm and _G.FastAttack then
+            pcall(function()
+                local CombatFramework = require(game:GetService("Players").LocalPlayer.PlayerScripts:WaitForChild("CombatFramework"))
+                local CombatFrameworkLib = getupvalue(CombatFramework, 2)
+                if CombatFrameworkLib and CombatFrameworkLib.activeController then
+                    CombatFrameworkLib.activeController:attack()
+                end
+            end)
+        end
+    end
+end)
+
+-- [[ VÒNG LẶP AUTO FARM (TWEEN) ]] --
+task.spawn(function()
+    while task.wait() do
+        if _G.AutoFarm then
+            pcall(function()
+                local LP = game.Players.LocalPlayer
+                local Enemy = nil
+                -- Tìm quái
+                for _, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                    if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                        Enemy = v
+                        break
+                    end
+                end
+
+                if Enemy then
+                    -- Trang bị vũ khí
+                    local Tool = LP.Backpack:FindFirstChild(_G.SelectWeapon) or LP.Character:FindFirstChild(_G.SelectWeapon)
+                    if Tool then LP.Character.Humanoid:EquipTool(Tool) end
+                    
+                    -- Bay đến quái dựa trên khoảng cách thiết lập
+                    LP.Character.HumanoidRootPart.CFrame = Enemy.HumanoidRootPart.CFrame * CFrame.new(0, _G.FarmDistance, 0) * CFrame.Angles(math.rad(-90), 0, 0)
+                end
+            end)
+        end
+    end
+end)
+
+-- Thông báo khi chạy script
+Window:SelectTab(1)
+Fluent:Notify({
+    Title = "NMD HUB",
+    Content = "Chào mừng bạn! Chơi game vui vẻ nha!",
+    Duration = 5
+})FIX TOGGLE & LOGO ]] --
 
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
