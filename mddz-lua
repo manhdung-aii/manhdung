@@ -2,7 +2,82 @@
 -- Credits: NMD HUB Team & Gemini AI
 -- Hàng rào bảo mật: Anti-Ban, Anti-Staff, Velocity Bypass
 
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local Fluent = loadstring(-- [[ NMD HUB - FIX KHÔNG LÊN MENU & TỔNG HỢP SIÊU CẤP ]] --
+
+-- 1. ĐOẠN CODE KÍCH HOẠT MENU (FIX LỖI KHÔNG HIỆN)
+local function LoadUI()
+    local Success, Library = pcall(function()
+        return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+    end)
+
+    if not Success then
+        -- Nếu link trên lỗi, dùng link dự phòng này
+        return loadstring(game:HttpGet("https://raw.githubusercontent.com/TwixZ-Cloud/Fluent-Lib/main/main.lua"))()
+    end
+    return Library
+end
+
+local Fluent = LoadUI()
+local Window = Fluent:CreateWindow({
+    Title = "NMD HUB | BLOX FRUITS 2026",
+    SubTitle = "by Gemini AI - Fix Menu Error",
+    TabWidth = 160, Size = UDim2.fromOffset(580, 460), Acrylic = true, Theme = "Dark"
+})
+
+-- [[ 2. CẤU HÌNH BIẾN (GIỮ NGUYÊN HỎA LỰC) ]] --
+_G.AutoFarmLevel = false
+_G.AntiLavaMagma = true
+_G.SelectedWeapons = {"Melee"}
+_G.SelectedSkills = {"Z", "X", "C", "V"}
+_G.SelectedSeaSkills = {"Z", "X", "C"}
+_G.SeaEventWeapon = "Blox Fruit"
+
+-- [[ 3. CÁC TABS QUAN TRỌNG ]] --
+local Tabs = {
+    Main = Window:AddTab({ Title = "Main Farm", Icon = "home" }),
+    Sea = Window:AddTab({ Title = "Sea Events", Icon = "waves" }),
+    Quest = Window:AddTab({ Title = "Quest/Elite", Icon = "scroll" }),
+    Settings = Window:AddTab({ Title = "Settings/Lag", Icon = "settings" })
+}
+
+-- [TAB MAIN: QUẠT CHẢ M1]
+Tabs.Main:AddToggle("AutoFarm", { Title = "Auto Farm Level (Max 2800)", Default = false }):OnChanged(function(v) _G.AutoFarmLevel = v end)
+Tabs.Main:AddMultiDropdown("WepSel", { Title = "Vũ Khí Quạt Chả", Values = {"Melee", "Sword", "Blox Fruit", "Gun"}, Default = {"Melee"}, Callback = function(v) _G.SelectedWeapons = v end })
+Tabs.Main:AddMultiDropdown("SkillSel", { Title = "Skill Quạt Chả", Values = {"Z", "X", "C", "V", "F"}, Default = {"Z", "X", "C", "V"}, Callback = function(v) _G.SelectedSkills = v end })
+
+-- [TAB SEA: SĂN SB/SHIP/LEVI]
+Tabs.Sea:AddToggle("SeaHunt", { Title = "Bật Săn Quái Biển", Default = false }):OnChanged(function(v) _G.AutoSeaHunter = v end)
+Tabs.Sea:AddDropdown("RemoteWep", { Title = "Vũ Khí Tầm Xa (SB/Ship)", Values = {"Blox Fruit", "Gun"}, Default = "Blox Fruit", Callback = function(v) _G.SeaEventWeapon = v end })
+Tabs.Sea:AddMultiDropdown("SeaSkills", { Title = "Skill Riêng Cho Biển", Values = {"Z", "X", "C", "V", "F"}, Default = {"Z", "X", "C"}, Callback = function(v) _G.SelectedSeaSkills = v end })
+
+-- [TAB SETTINGS: XÓA LAVA & GIẢM LAG]
+Tabs.Settings:AddToggle("ALava", { Title = "Xóa Lava Núi Lửa/Tiền Sử", Default = true }):OnChanged(function(v) _G.AntiLavaMagma = v end)
+Tabs.Settings:AddButton({ Title = "Bật Siêu Mượt (Low Lag)", Callback = function() 
+    -- Tự động xóa Texture/Sương mù khi bấm
+    for _, v in pairs(game:GetDescendants()) do
+        if v:IsA("Part") or v:IsA("MeshPart") then v.Material = Enum.Material.SmoothPlastic end
+        if v:IsA("Decal") then v:Destroy() end
+    end
+end})
+
+-- [[ 4. LOGIC CHỐNG CHÁY (LAVA) ]] --
+task.spawn(function()
+    while task.wait(1) do
+        if _G.AntiLavaMagma then
+            pcall(function()
+                for _, v in pairs(workspace:GetDescendants()) do
+                    if v:IsA("Part") and (v.Name:find("Lava") or v.Name:find("Magma") or v.Name:find("Dmg")) then 
+                        v.CanTouch = false 
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- [[ 5. KẾT THÚC ]] --
+Window:SelectTab(1)
+Fluent:Notify({ Title = "NMD HUB", Content = "MENU ĐÃ LÊN! CHẾ ĐỘ QUẠT CHẢ SẴN SÀNG!", Duration = 5 })game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local Window = Fluent:CreateWindow({
     Title = "NMD HUB | BLOX FRUITS",
     SubTitle = "by Gemini AI - Ultimate Edition",
