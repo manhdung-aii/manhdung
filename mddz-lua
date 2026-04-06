@@ -1,0 +1,89 @@
+-- [[ GEMINI HUB - CUSTOM VERSION FOR YOU ]] --
+-- GitHub: https://github.com/ (manhdung)
+
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+-- [[ 1. HỆ THỐNG BẢO MẬT ]] --
+local mt = getrawmetatable(game)
+local old = mt.__namecall
+setreadonly(mt, false)
+mt.__namecall = newcclosure(function(self, ...)
+    local method = getnamecallmethod()
+    if method == "FireServer" and (self.Name == "Admin_Check" or self.Name == "CheatCheck") then return nil end
+    return old(self, ...)
+end)
+setreadonly(mt, true)
+
+-- [[ 2. GIAO DIỆN ]] --
+local Window = Fluent:CreateWindow({
+    Title = "Gemini Hub Custom",
+    SubTitle = "By Your Name",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+-- [[ 3. LOGO TOGGLE ]] --
+local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+local Logo = Instance.new("ImageButton", ScreenGui)
+Logo.Size = UDim2.new(0, 50, 0, 50)
+Logo.Position = UDim2.new(0.05, 0, 0.2, 0)
+Logo.Image = "rbxassetid://6031280224"
+Logo.Draggable = true
+Logo.Active = true
+Instance.new("UICorner", Logo).CornerRadius = UDim.new(0, 10)
+Logo.MouseButton1Click:Connect(function()
+    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
+end)
+
+-- [[ 4. BIẾN HỆ THỐNG ]] --
+_G.AutoFarm = false
+_G.AutoStats = false
+_G.AutoSea2 = false
+_G.SelectWeapon = "Melee"
+_G.StatPoint = "Melee"
+
+-- [[ 5. LOGIC CHÍNH (FARM & STATS & SEA 2) ]] --
+task.spawn(function()
+    while task.wait() do
+        pcall(function()
+            if _G.AutoFarm then
+                local Enemy = nil
+                for _, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                    if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                        Enemy = v break
+                    end
+                end
+                if Enemy then
+                    local Character = game.Players.LocalPlayer.Character
+                    local Tool = game.Players.LocalPlayer.Backpack:FindFirstChild(_G.SelectWeapon) or Character:FindFirstChild(_G.SelectWeapon)
+                    if Tool then Character.Humanoid:EquipTool(Tool) end
+                    Character.HumanoidRootPart.CFrame = Enemy.HumanoidRootPart.CFrame * CFrame.new(0, 7, 0)
+                    game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
+                end
+            end
+            
+            if _G.AutoStats then
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", _G.StatPoint, 1)
+            end
+            
+            if _G.AutoSea2 and game.Players.LocalPlayer.Data.Level.Value >= 700 then
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("ConfirmIceAbiral")
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1347.7, 37.3, -1325.6)
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelZou")
+            end
+        end)
+    end
+end)
+
+-- [[ 6. CÁC TABS ]] --
+local Tabs = { Main = Window:AddTab({ Title = "Tính Năng", Icon = "home" }) }
+Tabs.Main:AddToggle("Farm", {Title = "Auto Farm Level", Default = false }):OnChanged(function(v) _G.AutoFarm = v end)
+Tabs.Main:AddToggle("Sea2", {Title = "Auto Sea 2 (Lvl 700)", Default = false }):OnChanged(function(v) _G.AutoSea2 = v end)
+Tabs.Main:AddToggle("Stats", {Title = "Auto Stats", Default = false }):OnChanged(function(v) _G.AutoStats = v end)
+Tabs.Main:AddDropdown("StatType", {Title = "Chọn Chỉ Số", Values = {"Melee", "Defense", "Sword"}, Default = "Melee", Callback = function(v) _G.StatPoint = v end})
+
+Window:SelectTab(1)
+Fluent:Notify({Title = "Gemini Hub", Content = "Script đã sẵn sàng!", Duration = 5})
