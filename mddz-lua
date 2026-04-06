@@ -1,12 +1,5 @@
--- [[ NMD HUB - PHIÊN BẢN ĐẶC BIỆT CHO DELTA ]] --
-local success, Fluent = pcall(function()
-    return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-end)
-
-if not success then
-    warn("Lỗi load thư viện Fluent, đang thử link dự phòng...")
-    Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/main.lua"))()
-end
+-- [[ NMD HUB - PHIÊN BẢN FULL TÍNH NĂNG ]] --
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
 local Window = Fluent:CreateWindow({
     Title = "NMD HUB",
@@ -18,12 +11,19 @@ local Window = Fluent:CreateWindow({
     MinimizeKey = Enum.KeyCode.LeftControl
 })
 
--- [[ HỆ THỐNG LOGO CHỮ D CHO DELTA ]] --
+-- [[ CẤU HÌNH ]] --
+_G.AutoFarm = false
+_G.AutoStats = false
+_G.FastAttack = true
+_G.FarmDistance = 15
+_G.StatPoint = "Melee" -- Mặc định nâng Melee
+
+-- [[ LOGO CHỮ D XANH (FIXED) ]] --
 local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
 local Logo = Instance.new("ImageButton", ScreenGui)
 Logo.Size = UDim2.new(0, 55, 0, 55)
 Logo.Position = UDim2.new(0.1, 0, 0.15, 0)
-Logo.Image = "rbxassetid://14457319666" -- ID chữ D xanh
+Logo.Image = "rbxassetid://14457319666"
 Logo.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 Logo.BackgroundTransparency = 0.4
 Logo.Draggable = true
@@ -32,67 +32,84 @@ Instance.new("UICorner", Logo).CornerRadius = UDim.new(0, 12)
 local Stroke = Instance.new("UIStroke", Logo)
 Stroke.Color = Color3.fromRGB(0, 255, 255)
 Stroke.Thickness = 2
-
--- Fix bật/tắt cho Delta Mobile
 Logo.MouseButton1Click:Connect(function()
-    if Window.Root then
-        Window.Root.Visible = not Window.Root.Visible
-    end
+    if Window.Root then Window.Root.Visible = not Window.Root.Visible end
 end)
 
--- [[ TAB CHỨC NĂNG ]] --
+-- [[ TẠO CÁC TAB ]] --
 local Tabs = {
     Main = Window:AddTab({ Title = "Auto Farm", Icon = "home" }),
+    Stats = Window:AddTab({ Title = "Nâng Điểm", Icon = "bar-chart" }),
     Settings = Window:AddTab({ Title = "Cài Đặt", Icon = "settings" })
 }
 
--- Nội dung Tab Settings (NMD HUB)
-Tabs.Settings:AddSection("Thông Tin Tác Giả")
-Tabs.Settings:AddParagraph({
-    Title = "NMD HUB",
-    Content = "Nhà sản xuất: NMD\nChơi game vui vẻ nha!"
+-- [[ TAB CHÍNH ]] --
+Tabs.Main:AddToggle("FarmLvl", {Title = "Auto Farm Level", Default = false }):OnChanged(function(v) _G.AutoFarm = v end)
+Tabs.Main:AddToggle("FastAtk", {Title = "Fast Attack (Đánh Nhanh)", Default = true }):OnChanged(function(v) _G.FastAttack = v end)
+
+-- [[ TAB NÂNG ĐIỂM ]] --
+Tabs.Stats:AddDropdown("SelectStat", {
+    Title = "Chọn chỉ số nâng",
+    Values = {"Melee", "Defense", "Sword", "Gun", "Demon Fruit"},
+    Default = "Melee",
+    Callback = function(v) _G.StatPoint = v end
 })
+Tabs.Stats:AddToggle("AutoStat", {Title = "Tự động nâng điểm", Default = false }):OnChanged(function(v) _G.AutoStats = v end)
 
-_G.AutoFarm = false
-_G.FarmDistance = 15
-
-Tabs.Main:AddToggle("Farm", {Title = "Auto Farm Level", Default = false }):OnChanged(function(v) 
-    _G.AutoFarm = v 
-end)
-
+-- [[ TAB CÀI ĐẶT ]] --
+Tabs.Settings:AddSection("Nhà Sản Xuất: NMD")
+Tabs.Settings:AddParagraph({Title = "NMD HUB", Content = "Chơi game vui vẻ nha!"})
 Tabs.Settings:AddSlider("Distance", {
     Title = "Khoảng cách Farm",
-    Default = 15,
-    Min = 1,
-    Max = 36,
-    Rounding = 0,
+    Default = 15, Min = 1, Max = 36, Rounding = 0,
     Callback = function(v) _G.FarmDistance = v end
 })
 
--- [[ VÒNG LẶP AUTO FARM ]] --
+-- [[ LOGIC AUTO FARM LEVEL ]] --
 task.spawn(function()
     while task.wait() do
         if _G.AutoFarm then
             pcall(function()
+                local LP = game.Players.LocalPlayer
+                -- Tự động cầm vũ khí
+                local Tool = LP.Backpack:FindFirstChild("Melee") or LP.Character:FindFirstChild("Melee")
+                if Tool and not LP.Character:FindFirstChild(Tool.Name) then
+                    LP.Character.Humanoid:EquipTool(Tool)
+                end
+                
+                -- Tìm quái (Logic đơn giản hóa cho Delta)
                 local Enemy = nil
                 for _, v in pairs(workspace.Enemies:GetChildren()) do
                     if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
                         Enemy = v break
                     end
                 end
+                
                 if Enemy then
-                    -- Tự cầm vũ khí (Melee)
-                    local Tool = game.Players.LocalPlayer.Backpack:FindFirstChild("Melee") or game.Players.LocalPlayer.Character:FindFirstChild("Melee")
-                    if Tool and not game.Players.LocalPlayer.Character:FindFirstChild(Tool.Name) then
-                        game.Players.LocalPlayer.Character.Humanoid:EquipTool(Tool)
-                    end
                     -- Bay đến quái
-                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = Enemy.HumanoidRootPart.CFrame * CFrame.new(0, _G.FarmDistance, 0)
+                    LP.Character.HumanoidRootPart.CFrame = Enemy.HumanoidRootPart.CFrame * CFrame.new(0, _G.FarmDistance, 0)
+                    -- Fast Attack
+                    if _G.FastAttack then
+                        local Combat = require(LP.PlayerScripts.CombatFramework)
+                        local Lib = getupvalue(Combat, 2)
+                        if Lib and Lib.activeController then
+                            Lib.activeController:attack()
+                        end
+                    end
                 end
             end)
         end
     end
 end)
 
+-- [[ LOGIC AUTO STATS ]] --
+task.spawn(function()
+    while task.wait(1) do
+        if _G.AutoStats then
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", _G.StatPoint, 3)
+        end
+    end
+end)
+
 Window:SelectTab(1)
-Fluent:Notify({Title = "NMD HUB", Content = "Đã tải xong! Chơi game vui vẻ!", Duration = 5})
+Fluent:Notify({Title = "NMD HUB", Content = "Đã cập nhật Full tính năng!", Duration = 5})
