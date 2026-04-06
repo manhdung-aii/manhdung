@@ -1,38 +1,70 @@
--- [[ NMD HUB - ULTIMATE SEA EVENT & ANTI-BAN ]] --
+-- [[ NMD HUB - ULTIMATE ALL-IN-ONE EDITION ]] --
 -- Credits: NMD HUB Team & Gemini AI
--- Features: Auto Leviathan (Tiki), Auto Kitsune, Sea Monster Hunter, Anti-Ban Shield
+-- Hàng rào bảo mật: Anti-Ban, Anti-Staff, Velocity Bypass
 
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local Window = Fluent:CreateWindow({
     Title = "NMD HUB | BLOX FRUITS",
-    SubTitle = "by Gemini AI - Anti-Ban Edition",
+    SubTitle = "by Gemini AI - Ultimate Edition",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
     Acrylic = true,
     Theme = "Dark"
 })
 
--- [[ BIẾN TOÀN CỤC - GIỮ NGUYÊN CÁC BIẾN CŨ CỦA SẾP ]] --
+-- [[ 1. HỆ THỐNG ĐA NGÔN NGỮ (MULTI-LANGUAGE) ]] --
+_G.Language = _G.Language or "Vietnamese"
+local Lang = {
+    ["Vietnamese"] = {
+        ["Main"] = "Chính",
+        ["Dojo"] = "Long Môn (Dragon)",
+        ["Sea"] = "Sự Kiện Biển",
+        ["Spy"] = "Hối Lộ Spy (1,500F)",
+        ["Monster"] = "Chọn Quái Đồ Sát",
+        ["Hunter"] = "Bật Săn Quái Biển",
+        ["Kitsune"] = "Tìm Đảo Cáo (Lái Thường)",
+        ["Levi"] = "Tìm Leviathan (Bay Cao)",
+        ["Drag"] = "Kéo Tim (Bám Biển Y=18)",
+        ["NotifySpy"] = "Đã hối lộ Spy thành công!",
+    },
+    ["English"] = {
+        ["Main"] = "Main Farm",
+        ["Dojo"] = "Dragon Dojo",
+        ["Sea"] = "Sea Events",
+        ["Spy"] = "Bribe Spy (1,500F)",
+        ["Monster"] = "Select Monsters",
+        ["Hunter"] = "Auto Sea Hunter",
+        ["Kitsune"] = "Find Kitsune (Normal)",
+        ["Levi"] = "Find Leviathan (Fly)",
+        ["Drag"] = "Drag Heart (Sea Level)",
+        ["NotifySpy"] = "Bribed Spy Successfully!",
+    }
+}
+local L = Lang[_G.Language]
+
+-- [[ 2. BIẾN CẤU HÌNH HỆ THỐNG ]] --
 _G.AutoFarmLevel = false
-_G.AutoFindLeviathan = false
+_G.AutoDragonV2 = false
+_G.AutoDragonV3 = false
+_G.AutoDragonHunter = false
 _G.AutoKitsuneIsland = false
+_G.AutoFindLeviathan = false
 _G.AutoSeaHunter = false
-_G.IsDraggingHeart = false -- Chế độ kéo tim (Bám biển)
+_G.IsDraggingHeart = false
 _G.SelectedSeaMonsters = {}
-_G.DangerLevelGoal = 6
 _G.SelectWeapon = "Melee"
 
 local TikiPort = Vector3.new(-15300, 20, 500)
 local SpyNPC = Vector3.new(-15400, 225, 440)
 
--- [[ 1. HÀNG RÀO ANTI-BAN & NGẮT VẬN TỐC ]] --
+-- [[ 3. HÀNG RÀO ANTI-BAN & NGẮT VẬN TỐC ]] --
 local RunService = game:GetService("RunService")
 task.spawn(function()
     RunService.Stepped:Connect(function()
         pcall(function()
             if _G.AutoFarmLevel or _G.AutoFindLeviathan or _G.AutoKitsuneIsland or _G.AutoSeaHunter then
                 local Root = game.Players.LocalPlayer.Character.HumanoidRootPart
-                -- NGẮT VẬN TỐC VẬT LÝ: Server sẽ thấy sếp như đang đứng yên
+                -- NGẮT VẬN TỐC VẬT LÝ (Tàng hình trước radar Admin)
                 Root.Velocity = Vector3.new(0, 0, 0)
                 Root.RotVelocity = Vector3.new(0, 0, 0)
             end
@@ -40,13 +72,13 @@ task.spawn(function()
     end)
 end)
 
--- Chống AFK (Treo xuyên đêm)
+-- Chống AFK (Idle)
 for _, v in pairs(getconnections(game.Players.LocalPlayer.Idled)) do v:Disable() end
 
--- [[ 2. HÀM HỖ TRỢ (UTILITIES) ]] --
+-- [[ 4. CÁC HÀM HỖ TRỢ (UTILITIES) ]] --
 local function SafeFastAttack()
     local VIM = game:GetService("VirtualInputManager")
-    local Delay = math.random(12, 16) / 100 -- Random delay giả lập tay người
+    local Delay = math.random(12, 16) / 100 
     VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0)
     task.wait(Delay)
     VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
@@ -69,89 +101,95 @@ local function SmartM1(Target, Height)
     end
 end
 
--- [[ 3. GIAO DIỆN TABS ]] --
+-- [[ 5. GIAO DIỆN TABS ]] --
 local Tabs = {
-    Main = Window:AddTab({ Title = "Main", Icon = "home" }),
-    Sea = Window:AddTab({ Title = "Sea Events", Icon = "waves" }),
-    Tele = Window:AddTab({ Title = "Teleport", Icon = "map" }) -- Giữ chỗ cho sếp up tiếp
+    Main = Window:AddTab({ Title = L["Main"], Icon = "home" }),
+    Dojo = Window:AddTab({ Title = L["Dojo"], Icon = "flame" }),
+    Sea = Window:AddTab({ Title = L["Sea"], Icon = "waves" })
 }
 
--- [TAB SEA EVENT]
-Tabs.Sea:AddSection("Chuẩn Bị (Tiki Outpost)")
+-- [TAB MAIN FARM]
+Tabs.Main:AddDropdown("Wep", { Title = "Weapon", Values = {"Melee", "Sword", "Fruit"}, Default = "Melee", Callback = function(v) _G.SelectWeapon = v end })
+Tabs.Main:AddToggle("FarmLvl", { Title = "Auto Farm Level", Default = false }):OnChanged(function(v) _G.AutoFarmLevel = v end)
 
+-- [TAB DRAGON DOJO]
+Tabs.Dojo:AddToggle("DrgHunter", { Title = "Auto Dragon Hunter (Hydra)", Default = false }):OnChanged(function(v) _G.AutoDragonHunter = v end)
+Tabs.Dojo:AddToggle("DrgV2", { Title = "Auto Dragon V2 (Forest)", Default = false }):OnChanged(function(v) _G.AutoDragonV2 = v end)
+Tabs.Dojo:AddToggle("DrgV3", { Title = "Auto Dragon V3 (Terror)", Default = false }):OnChanged(function(v) _G.AutoDragonV3 = v end)
+
+-- [TAB SEA EVENT]
 Tabs.Sea:AddButton({
-    Title = "Hối Lộ Spy (Tốn 1,500 Fragment)",
-    Description = "Chỉ hối lộ khi sếp muốn tìm Frozen Dimension.",
+    Title = L["Spy"],
     Callback = function()
         game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(SpyNPC)
         task.wait(0.5)
-        for i=1,3 do 
-            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("LeviathanSpy", "Clues") 
-            task.wait(0.3) 
-        end
-        Fluent:Notify({Title = "NMD HUB", Content = "Đã hối lộ Spy xong!", Duration = 5})
+        for i=1,3 do game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("LeviathanSpy", "Clues") task.wait(0.3) end
+        Fluent:Notify({Title = "NMD HUB", Content = L["NotifySpy"], Duration = 5})
     end
 })
 
-Tabs.Sea:AddSection("Săn Quái & Tìm Đảo")
-
 Tabs.Sea:AddMultiDropdown("MonsterSelect", {
-    Title = "Chọn Quái Để Đồ Sát",
+    Title = L["Monster"],
     Values = {"Sea Beast", "Terror Shark", "Piranha", "Shark", "Electric Wing"},
     Default = {},
     Callback = function(v) _G.SelectedSeaMonsters = v end
 })
 
-Tabs.Sea:AddToggle("SeaHunt", { Title = "Bật Chế Độ Săn Quái", Default = false }):OnChanged(function(v) _G.AutoSeaHunter = v end)
+Tabs.Sea:AddToggle("SeaHunt", { Title = L["Hunter"], Default = false }):OnChanged(function(v) _G.AutoSeaHunter = v end)
+Tabs.Sea:AddToggle("Kitsune", { Title = L["Kitsune"], Default = false }):OnChanged(function(v) _G.AutoKitsuneIsland = v end)
+Tabs.Sea:AddToggle("Levi", { Title = L["Levi"], Default = false }):OnChanged(function(v) _G.AutoFindLeviathan = v end)
+Tabs.Sea:AddToggle("DragHeart", { Title = L["Drag"], Default = false }):OnChanged(function(v) _G.IsDraggingHeart = v end)
 
-Tabs.Sea:AddToggle("Kitsune", { Title = "Auto Tìm Đảo Cáo (Lái Thường)", Default = false }):OnChanged(function(v) _G.AutoKitsuneIsland = v end)
-
-Tabs.Sea:AddToggle("Levi", { Title = "Auto Tìm Leviathan (Bay Cao Bảo Vệ)", Default = false }):OnChanged(function(v) _G.AutoFindLeviathan = v end)
-
-Tabs.Sea:AddToggle("DragHeart", { 
-    Title = "CHẾ ĐỘ KÉO TIM (Bám Biển Y=18)", 
-    Description = "BẬT KHI ĐÃ MÓC TIM để lôi về Tiki không bị đứt xích.",
-    Default = false 
-}):OnChanged(function(v) _G.IsDraggingHeart = v end)
-
--- [[ 4. VÒNG LẶP THỰC THI (MAIN LOOP) ]] --
+-- [[ 6. VÒNG LẶP THỰC THI CHÍNH (MAIN LOOP) ]] --
 task.spawn(function()
     while task.wait(0.1) do
         pcall(function()
-            if _G.AutoFindLeviathan or _G.AutoKitsuneIsland or _G.AutoSeaHunter then
-                local LP = game.Players.LocalPlayer
-                local Character = LP.Character
-                local Root = Character.HumanoidRootPart
-                local Seat = Character.Humanoid.SeatPart
+            local LP = game.Players.LocalPlayer
+            local Character = LP.Character
+            local Root = Character.HumanoidRootPart
 
-                -- KIỂM TRA QUÁI MỤC TIÊU (ƯU TIÊN ĐÁNH TRƯỚC)
+            -- PHẦN 1: DRAGON DOJO LOGIC
+            if _G.AutoDragonHunter then
+                for _, v in pairs(workspace.Enemies:GetChildren()) do
+                    if v.Name:find("Dragon Crew") then SmartM1(v, 12) break end
+                end
+            elseif _G.AutoDragonV2 then
+                local Flower = workspace:FindFirstChild("Fire Flower")
+                if Flower then Root.CFrame = Flower.CFrame else
+                    SmartM1(workspace.Enemies:FindFirstChild("Forest Pirate"), 10)
+                end
+            elseif _G.AutoDragonV3 then
+                local Boss = workspace.Enemies:FindFirstChild("Terror Shark")
+                if Boss then SmartM1(Boss, 22) else
+                    Root.CFrame = CFrame.new(Root.Position.X + 200, 100, Root.Position.Z + 200)
+                end
+
+            -- PHẦN 2: SEA EVENTS (LEVI / KITSUNE / HUNT)
+            elseif _G.AutoFindLeviathan or _G.AutoKitsuneIsland or _G.AutoSeaHunter then
+                local Seat = Character.Humanoid.SeatPart
+                
+                -- Ưu tiên đánh quái trước
                 local Target = nil
                 if _G.AutoSeaHunter then
                     for _, mName in pairs(_G.SelectedSeaMonsters) do
                         local enemy = workspace.Enemies:FindFirstChild(mName)
                         if enemy and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
-                            Target = enemy
-                            break
+                            Target = enemy; break
                         end
                     end
                 end
 
                 if Target then
-                    -- Rời ghế để vả quái
                     SmartM1(Target, 15)
                 elseif Seat and Seat:IsA("VehicleSeat") then
-                    -- LÁI THUYỀN KHI KHÔNG CÓ QUÁI
                     local Boat = Seat.Parent
-                    
                     if _G.IsDraggingHeart then
-                        -- KÉO TIM: Hướng về Tiki, ép sát mặt nước
+                        -- KÉO TIM VỀ TIKI (Bám biển Y=18)
                         Boat:SetPrimaryPartCFrame(CFrame.new(Boat.PrimaryPart.Position, TikiPort))
                         Boat:SetPrimaryPartCFrame(CFrame.new(Boat.PrimaryPart.Position.X, 18, Boat.PrimaryPart.Position.Z) * CFrame.new(0,0,-50))
                     else
-                        -- ĐI TÌM: Lái nhanh
-                        Boat:SetPrimaryPartCFrame(Boat.PrimaryPart.CFrame * CFrame.new(0,0,-70))
-                        
-                        -- Nếu tìm Levi thì mới bay cao khi gặp quái lạ (không chọn đánh)
+                        -- ĐANG TÌM ĐẢO (Lái nhanh)
+                        Boat:SetPrimaryPartCFrame(Boat.PrimaryPart.CFrame * CFrame.new(0,0,-75))
                         if _G.AutoFindLeviathan then
                             for _, enemy in pairs(workspace.Enemies:GetChildren()) do
                                 if enemy.Name:find("Sea Beast") or enemy.Name:find("Terror Shark") then
@@ -167,4 +205,4 @@ task.spawn(function()
 end)
 
 Window:SelectTab(1)
-Fluent:Notify({ Title = "NMD HUB", Content = "Hệ thống Sea Event & Anti-Ban đã kích hoạt!", Duration = 5 })
+Fluent:Notify({ Title = "NMD HUB", Content = "Chào sếp! Hệ thống Anti-Ban & Sea Event đã sẵn sàng.", Duration = 5 })
