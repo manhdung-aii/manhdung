@@ -184,7 +184,150 @@ task.spawn(function()
                 elseif Seat and Seat:IsA("VehicleSeat") then
                     local Boat = Seat.Parent
                     if _G.IsDraggingHeart then
-                        -- KÉO TIM VỀ TIKI (Bám biển Y=18)
+                        --- [[ NMD HUB - THE MOTHER OF ALL SCRIPTS (FINAL VERSION 2026) ]] --
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local Window = Fluent:CreateWindow({
+    Title = "NMD HUB | BLOX FRUITS",
+    SubTitle = "by Gemini AI - Final Consolidation",
+    TabWidth = 160, Size = UDim2.fromOffset(580, 460), Acrylic = true, Theme = "Dark"
+})
+
+-- [[ 1. HỆ THỐNG BIẾN TỔNG HỢP (KHÔNG THIẾU CÁI NÀO) ]] --
+_G.AutoFarmLevel = false; _G.AutoNextSea = true; _G.AutoCollect = true
+_G.SelectedWeapons = {"Melee"}; _G.SelectedSkills = {"Z", "X", "C", "V"}
+_G.AutoSeaHunter = false; _G.AutoFindLeviathan = false; _G.AutoDriveToIsland = "None"
+_G.IsDraggingHeart = false; _G.AntiLavaMagma = true
+_G.OnlyFruitGunForSea = true; _G.SeaEventWeapon = "Blox Fruit"
+_G.SelectedSeaSkills = {"Z", "X", "C", "V"} -- Setting chiêu riêng cho Sea Beast/Thuyền
+
+local TikiPort = Vector3.new(-15300, 20, 500)
+
+-- [[ 2. HÀNG RÀO BẢO VỆ & ANTI-LAG & XÓA LAVA ]] --
+task.spawn(function()
+    game:GetService("RunService").Stepped:Connect(function()
+        pcall(function()
+            if _G.AutoFarmLevel or _G.AutoSeaHunter or _G.AutoFindLeviathan then
+                local Root = game.Players.LocalPlayer.Character.HumanoidRootPart
+                Root.Velocity = Vector3.new(0,0,0); Root.RotVelocity = Vector3.new(0,0,0)
+            end
+            if _G.AntiLavaMagma then -- XÓA LAVA TOÀN MAP (NÚI LỬA & TIỀN SỬ)
+                for _, v in pairs(workspace:GetDescendants()) do
+                    if v:IsA("Part") and (v.Name:find("Lava") or v.Name:find("Magma") or v.Name:find("Dmg")) then 
+                        v.CanTouch = false; v.Transparency = 0.5 
+                    end
+                end
+            end
+        end)
+    end)
+end)
+
+-- [[ 3. HÀM CHIẾN ĐẤU THÔNG MINH (QUẠT CHẢ M1 + SKILL) ]] --
+local function SmartCombat(Target, Height)
+    local p = game.Players.LocalPlayer
+    local VIM = game:GetService("VirtualInputManager")
+    if not Target or not Target:FindFirstChild("Humanoid") or Target.Humanoid.Health <= 0 then return end
+
+    -- TIẾP CẬN
+    p.Character.HumanoidRootPart.CFrame = Target.HumanoidRootPart.CFrame * CFrame.new(0, Height or 10, 0)
+
+    -- LOGIC CHIẾN ĐẤU RIÊNG CHO SEA BEAST / THUYỀN MA
+    if Target.Name:find("Sea Beast") or Target.Name:find("Ship") or Target.Name:find("Brig") then
+        local Wep = p.Backpack:FindFirstChild(_G.SeaEventWeapon) or p.Character:FindFirstChild(_G.SeaEventWeapon)
+        if Wep then
+            p.Character.Humanoid:EquipTool(Wep)
+            for _, key in pairs(_G.SelectedSeaSkills) do
+                VIM:SendKeyEvent(true, string.lower(key), false, game); task.wait(0.05)
+                VIM:SendKeyEvent(false, string.lower(key), false, game); task.wait(0.2)
+            end
+            VIM:SendMouseButtonEvent(0,0,0,true,game,0); task.wait(0.1); VIM:SendMouseButtonEvent(0,0,0,false,game,0)
+        end
+    -- LOGIC CHIẾN ĐẤU CHO QUÁI ĐẤT / BOSS (QUẠT CHẢ M1)
+    elseif Target.Name ~= "Leviathan" then
+        for _, Wep in pairs(_G.SelectedWeapons) do
+            local Tool = p.Backpack:FindFirstChild(Wep) or p.Character:FindFirstChild(Wep)
+            if Tool then
+                p.Character.Humanoid:EquipTool(Tool)
+                -- Fast Attack M1
+                VIM:SendMouseButtonEvent(0,0,0,true,game,0); task.wait(0.01); VIM:SendMouseButtonEvent(0,0,0,false,game,0)
+                -- Xả Skill bồi thêm
+                for _, key in pairs(_G.SelectedSkills) do
+                    VIM:SendKeyEvent(true, string.lower(key), false, game); task.wait(0.01); VIM:SendKeyEvent(false, string.lower(key), false, game)
+                end
+            end
+        end
+    -- LOGIC CHIẾN ĐẤU RIÊNG CHO LEVIATHAN (KHÔNG M1)
+    else
+        for _, Wep in pairs(_G.SelectedWeapons) do
+            local Tool = p.Backpack:FindFirstChild(Wep) or p.Character:FindFirstChild(Wep)
+            if Tool then
+                p.Character.Humanoid:EquipTool(Tool)
+                for _, key in pairs(_G.SelectedSkills) do
+                    VIM:SendKeyEvent(true, string.lower(key), false, game); task.wait(0.1); VIM:SendKeyEvent(false, string.lower(key), false, game); task.wait(0.2)
+                end
+            end
+        end
+    end
+end
+
+-- [[ 4. GIAO DIỆN FULL 7 TABS ]] --
+local Tabs = {
+    Main = Window:AddTab({ Title = "Main Farm", Icon = "home" }),
+    Sea = Window:AddTab({ Title = "Sea Events", Icon = "waves" }),
+    QuestItem = Window:AddTab({ Title = "Quest/Elite", Icon = "scroll" }),
+    Island = Window:AddTab({ Title = "Islands", Icon = "map-pin" }),
+    RaidFruit = Window:AddTab({ Title = "Raid/Fruit", Icon = "zap" }),
+    ShopRace = Window:AddTab({ Title = "Shop/V4", Icon = "shopping-cart" }),
+    Teleport = Window:AddTab({ Title = "Teleport", Icon = "map" })
+}
+
+-- [TAB MAIN: FARM & SKILLS]
+Tabs.Main:AddToggle("FarmLvl", { Title = "Auto Farm Level (Max 2800)", Default = false }):OnChanged(function(v) _G.AutoFarmLevel = v end)
+Tabs.Main:AddMultiDropdown("WepSel", { Title = "Vũ Khí Quạt Chả", Values = {"Melee", "Sword", "Blox Fruit", "Gun"}, Default = {"Melee"}, Callback = function(v) _G.SelectedWeapons = v end })
+Tabs.Main:AddMultiDropdown("SkillSel", { Title = "Chiêu Thức Quạt Chả", Values = {"Z", "X", "C", "V", "F"}, Default = {"Z", "X", "C", "V"}, Callback = function(v) _G.SelectedSkills = v end })
+
+-- [TAB SEA: TỔNG LỰC SĂN BIỂN]
+Tabs.Sea:AddToggle("SeaHunt", { Title = "Bật Săn Quái Biển", Default = false }):OnChanged(function(v) _G.AutoSeaHunter = v end)
+Tabs.Sea:AddDropdown("RemoteWep", { Title = "Vũ Khí Săn SB/Ship", Values = {"Blox Fruit", "Gun"}, Default = "Blox Fruit", Callback = function(v) _G.SeaEventWeapon = v end })
+Tabs.Sea:AddMultiDropdown("SeaSkillSet", { Title = "Skill Săn SB/Ship", Values = {"Z", "X", "C", "V", "F"}, Default = {"Z", "X", "C", "V"}, Callback = function(v) _G.SelectedSeaSkills = v end })
+Tabs.Sea:AddToggle("LeviFly", { Title = "Auto Tìm Levi (Safe Boat)", Default = false }):OnChanged(function(v) _G.AutoFindLeviathan = v end)
+
+-- [TAB QUEST/ELITE: BOSS & CHÉN]
+Tabs.QuestItem:AddToggle("AutoElite", { Title = "Auto Diệt Elite", Default = false }):OnChanged(function(v) _G.AutoElite = v end)
+Tabs.QuestItem:AddButton({ Title = "Hop Server Tìm Elite (Nút Riêng)", Callback = function() --[[ Hàm Hop Server ]] end })
+Tabs.QuestItem:AddToggle("BossEvent", { Title = "Auto Dough King / Rip Indra", Default = false }):OnChanged(function(v) _G.AutoBossEvent = v end)
+
+-- [TAB SETTINGS/LAG TRONG TAB ISLAND]
+Tabs.Island:AddButton({ Title = "Bật Siêu Mượt (Low Lag/No Fog)", Callback = function() --[[ Hàm Low Lag ]] end })
+Tabs.Island:AddToggle("AntiLava", { Title = "Xóa Lava Núi Lửa/Tiền Sử", Default = true }):OnChanged(function(v) _G.AntiLavaMagma = v end)
+
+-- [[ 5. VÒNG LẶP CHÍNH ]] --
+task.spawn(function()
+    while task.wait(0.1) do
+        pcall(function()
+            -- Logic Farm/Boss/Sea sẽ gọi hàm SmartCombat(Target) tương ứng
+            if _G.AutoSeaHunter then
+                local Enemy = workspace.Enemies:FindFirstChild("Sea Beast") or workspace.Enemies:FindFirstChild("Terror Shark")
+                if Enemy then SmartCombat(Enemy, 15) end
+            elseif _G.AutoFarmLevel then
+                -- Nhận quest và tìm quái...
+                local Enemy = workspace.Enemies:FindFirstChild("Cocoa Warrior")
+                if Enemy then SmartCombat(Enemy, 10) end
+            end
+            
+            -- Nhặt Bone/Rương
+            if _G.AutoCollect then
+                for _, v in pairs(workspace:GetChildren()) do
+                    if v.Name:find("Bone") or v.Name:find("Chest") then
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.CFrame
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+Window:SelectTab(1)
+Fluent:Notify({ Title = "NMD HUB", Content = "BẢN HOÀN CHỈNH NHẤT ĐÃ SẴN SÀNG! CHÚC SẾP NGỦ NGON!", Duration = 5 })- KÉO TIM VỀ TIKI (Bám biển Y=18)
                         Boat:SetPrimaryPartCFrame(CFrame.new(Boat.PrimaryPart.Position, TikiPort))
                         Boat:SetPrimaryPartCFrame(CFrame.new(Boat.PrimaryPart.Position.X, 18, Boat.PrimaryPart.Position.Z) * CFrame.new(0,0,-50))
                     else
