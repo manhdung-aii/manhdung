@@ -1,7 +1,120 @@
 -- [[ NMD HUB - KITSUNE UPDATE v15.0 ]] --
 -- Tính năng: Auto Kitsune Island, Auto Azure Ember, Auto Trade Ember
 
-local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Rayfield/main/source"))()
+local Rayfield = load-- [[ NMD HUB - KITSUNE UPDATE v15.0 FIXED ]] --
+
+-- Fix lỗi Loadstring Rayfield
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- == HỆ THỐNG CÀI ĐẶT (SETTINGS) ==
+_G.Settings = {
+    AutoKitsuneIsland = false,
+    AutoPickEmber = false,
+    AutoTradeEmber = false,
+    EmberTarget = 20,
+    AutoLeviathan = false,
+    Skills = {["Z"] = false, ["X"] = false, ["C"] = false, ["V"] = false, ["F"] = false},
+}
+
+-- == TẠO WINDOW ==
+local Window = Rayfield:CreateWindow({
+   Name = "🦊 NMD HUB | KITSUNE v15.0",
+   LoadingTitle = "Đang quét tọa độ Đảo Kitsune...",
+   LoadingSubtitle = "Producer: NMD Hub Team",
+   ConfigurationSaving = { Enabled = true, Folder = "NMD_V15" },
+   Discord = { Enabled = false }
+})
+
+-- == TAB KITSUNE ISLAND ==
+local KitsuneTab = Window:CreateTab("Kitsune Island 🦊", 4483345998)
+
+KitsuneTab:CreateSection("--- Tìm Đảo & Nhặt Đuôi Lửa ---")
+
+KitsuneTab:CreateToggle({
+   Name = "Auto Tìm Đảo Kitsune (Kitsune Tracker)",
+   CurrentValue = false,
+   Flag = "ToggleKitsune", 
+   Callback = function(Value)
+      _G.Settings.AutoKitsuneIsland = Value
+      task.spawn(function()
+         while _G.Settings.AutoKitsuneIsland do
+            pcall(function()
+               local Island = game.Workspace.Map:FindFirstChild("Kitsune Island")
+               if Island then
+                  Rayfield:Notify({Title = "NMD Hub", Content = "ĐÃ TÌM THẤY ĐẢO KITSUNE!"})
+                  game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = Island:GetModelCFrame()
+               end
+            end)
+            task.wait(2)
+         end
+      end)
+   end,
+})
+
+KitsuneTab:CreateToggle({
+   Name = "Auto Nhặt Azure Ember (Đuôi Lửa)",
+   CurrentValue = false,
+   Flag = "ToggleEmber",
+   Callback = function(Value)
+      _G.Settings.AutoPickEmber = Value
+      task.spawn(function()
+         while _G.Settings.AutoPickEmber do
+            pcall(function()
+               for _, v in pairs(game.Workspace:GetChildren()) do
+                  if v.Name == "Azure Ember" then
+                     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.CFrame
+                     task.wait(0.1)
+                  end
+               end
+            end)
+            task.wait()
+         end
+      end)
+   end,
+})
+
+KitsuneTab:CreateSection("--- Tự Động Đổi Quà (Trade) ---")
+
+KitsuneTab:CreateSlider({
+   Name = "Số lượng Ember để đổi quà",
+   Range = {10, 25},
+   Increment = 5,
+   Suffix = " Embers",
+   CurrentValue = 20,
+   Flag = "SliderEmber",
+   Callback = function(Value)
+      _G.Settings.EmberTarget = Value
+   end,
+})
+
+KitsuneTab:CreateToggle({
+   Name = "Auto Trade Ember (Đến Đền Thờ)",
+   CurrentValue = false,
+   Flag = "ToggleTrade",
+   Callback = function(Value)
+      _G.Settings.AutoTradeEmber = Value
+      task.spawn(function()
+         while _G.Settings.AutoTradeEmber do
+            pcall(function()
+               local Shrine = game.Workspace.Map.KitsuneIsland:FindFirstChild("Shrine")
+               if Shrine then
+                  game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = Shrine.CFrame
+                  game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("KitsuneShrine", "Trade")
+               end
+            end)
+            task.wait(2)
+         end
+      end)
+   end,
+})
+
+-- Thông báo khi chạy thành công
+Rayfield:Notify({
+   Title = "NMD HUB v15.0 FIXED",
+   Content = "Menu đã khởi động thành công!",
+   Duration = 5,
+   Image = 4483345998,
+})string(game:HttpGet("https://raw.githubusercontent.com/shlexware/Rayfield/main/source"))()
 
 -- == HỆ THỐNG CÀI ĐẶT (SETTINGS) ==
 _G.Settings = {
